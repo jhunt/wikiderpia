@@ -21,10 +21,13 @@ get '/wiki/:name' => sub {
 	s/\b(may be|can be|are not)\b/$1 (herp derp derp)/g;
 	s/\b(walked|talked|supported|coined|launched|published|approached|contained|edited|started|locked|allowed|argued)\b/derped/g;
 	s/\b(hosted|introduced|passed|considered|introduced|remained|asked|stored|covered|vetted|limited|intended|used|described)\b/herped/g;
-  s/\b(openness|quality)\b/derpitude/g;
+	s/\b(openness|quality)\b/derpitude/g;
 	my $baseurl = request->uri_base;
 	s|wikipedia.org/wiki/|$baseurl/wiki/|g;
 	s|\bportmanteau\b|port- portman -- err -- a word made up of other words|;
+	s|//upload.wikimedia.org/wikipedia/en/b/bc/Wiki.png|/o/logo.png|;
+	s|"//upload.wikimedia.org/.*Wikiderpia-logo-v2.svg.png"|"/o/logo.png"|;
+	s|File:Wikiderpia|File:Wikipedia|g;
 
 	status $res->code;
 	return $_;
