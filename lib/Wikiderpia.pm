@@ -5,6 +5,26 @@ use utf8;
 
 our $VERSION = '0.1.0';
 
+sub _derpify {
+	my ($content) = @_;
+	my $baseurl = request->uri_base;
+
+	$content =~ s/\bWikipedia/Wikiderpia/g;
+	$content =~ s/\b(may be|can be|are not)\b/$1 (herp derp derp)/g;
+	$content =~ s/\b(walked|talked|supported|coined|launched|published|approached|contained|edited|started|locked|allowed|argued)\b/derped/g;
+	$content =~ s/\b(hosted|introduced|passed|considered|introduced|remained|asked|stored|covered|vetted|limited|intended|used|described)\b/herped/g;
+	$content =~ s/\b(love thee)\b/derrp theeeeeeeeeee/g;
+	$content =~ s/\b(openness|quality)\b/derpitude/g;
+	$content =~ s/[fF]ebruary/Derpruary/g;
+	$content =~ s|wikipedia.org/wiki/|$baseurl/wiki/|g;
+	$content =~ s|\bportmanteau\b|port- portman -- err -- a word made up of other words|;
+	$content =~ s|//upload.wikimedia.org/wikipedia/en/b/bc/Wiki.png|/o/logo.png|;
+	$content =~ s|"//upload.wikimedia.org/.*Wikiderpia-logo-v2.svg.png"|"/o/logo.png"|;
+	$content =~ s|File:Wikiderpia|File:Wikipedia|g;
+
+	return $content;
+}
+
 get '/' => sub {
 	redirect '/wiki/Wikipedia';
 };
@@ -16,22 +36,58 @@ get '/wiki/:name' => sub {
 	my $ua = LWP::UserAgent->new;
 	my $res = $ua->get('http://en.wikipedia.org/wiki/'.$name);
 
-	local $_ = $res->decoded_content;
-	s/\bWikipedia/Wikiderpia/g;
-	s/\b(may be|can be|are not)\b/$1 (herp derp derp)/g;
-	s/\b(walked|talked|supported|coined|launched|published|approached|contained|edited|started|locked|allowed|argued)\b/derped/g;
-	s/\b(hosted|introduced|passed|considered|introduced|remained|asked|stored|covered|vetted|limited|intended|used|described)\b/herped/g;
-	s/\b(love thee)\b/derrp theeeeeeeeeee/g;
-	s/\b(openness|quality)\b/derpitude/g;
-	my $baseurl = request->uri_base;
-	s|wikipedia.org/wiki/|$baseurl/wiki/|g;
-	s|\bportmanteau\b|port- portman -- err -- a word made up of other words|;
-	s|//upload.wikimedia.org/wikipedia/en/b/bc/Wiki.png|/o/logo.png|;
-	s|"//upload.wikimedia.org/.*Wikiderpia-logo-v2.svg.png"|"/o/logo.png"|;
-	s|File:Wikiderpia|File:Wikipedia|g;
+	my $derped = _derpify($res->decoded_content);
 
 	status $res->code;
-	return $_;
+	return $derped;
+};
+
+get '/w/:name' => sub {
+	my $name = params->{name};
+	$name =~ s/Wikiderpia/Wikipedia/g;
+
+	# searching
+	if (exists params->{search} && (my $search = params->{search})) {
+		$search =~ s/wikiderpia/wikipedia/gi;
+
+		my $ua = LWP::UserAgent->new(requests_redirectable => []);
+		my $res = $ua->get('http://en.wikipedia.org/w/'.$name."?search=$search&title=Special%3ASearch&go=Go");
+
+		if (my $loc = $res->header('Location')) {
+			$loc =~ s|https?://[^/]+/|/|;
+			redirect $loc;
+		}
+	# page history
+	} elsif (exists params->{action} && params->{action} eq "history" ) {
+		my $req = "/w/$name?action=history";
+		for (qw/title dir offset limit/) {
+			$req .= "&$_=".params->{$_} if exists params->{$_};
+		}
+
+		my $ua = LWP::UserAgent->new;
+		my $res = $ua->get("http://en.wikipedia.org/$req");
+
+		my $derped = _derpify($res->decoded_content);
+
+		status $res->code;
+		return $derped;
+	# for page diffs
+	} elsif (params->{oldid}) {
+		my $req = "/w/$name?oldid=".params->{oldid};
+		for (qw/title oldid/) {
+			$req .= "&$_=".params->{$_} if exists params->{$_};
+		}
+		my $ua = LWP::UserAgent->new;
+		my $res = $ua->get("http://en.wikipedia.org/$req");
+
+		my $derped = _derpify($res->decoded_content);
+
+		status $res->code;
+		return $derped;
+	# all other actions are unsupported currently (don't want to risk editing derped content)
+	} else {
+		forward "/wiki/$name";
+	}
 };
 
 true;
