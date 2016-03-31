@@ -5,6 +5,10 @@ use utf8;
 
 our $VERSION = '0.1.0';
 
+sub _url {
+	return "https://en.wikipedia.org$_[0]"
+}
+
 sub _derpify {
 	my ($content) = @_;
 	my $baseurl = request->uri_base;
@@ -24,8 +28,17 @@ sub _derpify {
 	$content =~ s|//upload.wikimedia.org/wikipedia/en/b/bc/Wiki.png|/o/logo.png|;
 	$content =~ s|"//upload.wikimedia.org/.*Wikiderpia-logo-v2.svg.png"|"/o/logo.png"|;
 	$content =~ s|File:Wikiderpia|File:Wikipedia|g;
+	$content =~ s|([-_/])Wikiderpia|$1Wikipedia|g;
 
 	return $content;
+}
+
+sub passthru() {
+	my $ua = LWP::UserAgent->new;
+	my $res = $ua->get(_url(request->uri));
+	status $res->code;
+	content_type $res->content_type;
+	return $res->decoded_content;
 }
 
 get '/' => sub {
@@ -37,13 +50,16 @@ get '/wiki/:name' => sub {
 	$name =~ s/Wikiderpia/Wikipedia/;
 
 	my $ua = LWP::UserAgent->new;
-	my $res = $ua->get('http://en.wikipedia.org/wiki/'.$name);
+	my $res = $ua->get(_url("/wiki/$name"));
 
 	my $derped = _derpify($res->decoded_content);
 
 	status $res->code;
 	return $derped;
 };
+
+get '/w/resources/**' => sub { passthru };
+get '/w/load.php'     => sub { passthru };
 
 get '/w/:name' => sub {
 	my $name = params->{name};
@@ -54,7 +70,7 @@ get '/w/:name' => sub {
 		$search =~ s/wikiderpia/wikipedia/gi;
 
 		my $ua = LWP::UserAgent->new(requests_redirectable => []);
-		my $res = $ua->get('http://en.wikipedia.org/w/'.$name."?search=$search&title=Special%3ASearch&go=Go");
+		my $res = $ua->get(_url("/w/$name?search=$search&title=Special%3ASearch&go=Go"));
 
 		if (my $loc = $res->header('Location')) {
 			$loc =~ s|https?://[^/]+/|/|;
@@ -68,7 +84,7 @@ get '/w/:name' => sub {
 		}
 
 		my $ua = LWP::UserAgent->new;
-		my $res = $ua->get("http://en.wikipedia.org/$req");
+		my $res = $ua->get(_url("/$req"));
 
 		my $derped = _derpify($res->decoded_content);
 
@@ -81,7 +97,7 @@ get '/w/:name' => sub {
 			$req .= "&$_=".params->{$_} if exists params->{$_};
 		}
 		my $ua = LWP::UserAgent->new;
-		my $res = $ua->get("http://en.wikipedia.org/$req");
+		my $res = $ua->get(_url("/$req"));
 
 		my $derped = _derpify($res->decoded_content);
 
@@ -92,6 +108,8 @@ get '/w/:name' => sub {
 		forward "/wiki/$name";
 	}
 };
+
+get '**' => sub { return passthru };
 
 true;
 
