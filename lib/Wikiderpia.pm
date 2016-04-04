@@ -21,13 +21,13 @@ sub _derpify {
 	$content =~ s/\b(openness|quality)\b/derpitude/g;
 	$content =~ s/[fF]ebruary/Derpruary/g;
 	$content =~ s|wikipedia.org/wiki/|$baseurl/wiki/|g;
+	$content =~ s|Jimmy (.*?Wales)|Dimmy $1|g;
 	$content =~ s|\bportmanteau\b|port- portman -- err -- a word made up of other words|;
 	$content =~ s|everyone reading this right now gave|you (yes you) would just fork over the bloody|;
 	$content =~ s|To protect our independence, we'll never run ads|To protect our independence, we'll never set up a fascist religious dictatorship that suppresses the freedoms of Dimmy Wales|;
-	$content =~ s|Jimmy Wales|Dimmy Wales|;
 	$content =~ s|passion for sharing the world’s knowledge|serious problem with you|;
-	$content =~ s|//upload.wikimedia.org/wikipedia/en/b/bc/Wiki.png|/o/logo.png|;
-	$content =~ s|"//upload.wikimedia.org/.*Wikiderpia-logo-v2.svg.png"|"/o/logo.png"|;
+	$content =~ s|//upload.wikimedia.org/wikipedia/en/b/bc/Wiki.png|/o/logo.png|g;
+	$content =~ s|"//upload.wikimedia.org/.*Wikiderpia-logo-v2.svg.png"|"/o/logo.png"|g;
 	$content =~ s|File:Wikiderpia|File:Wikipedia|g;
 	$content =~ s|([-_/])Wikiderpia|$1Wikipedia|g;
 
