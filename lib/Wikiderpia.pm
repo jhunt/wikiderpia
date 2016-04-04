@@ -24,7 +24,8 @@ sub _derpify {
 	$content =~ s|\bportmanteau\b|port- portman -- err -- a word made up of other words|;
 	$content =~ s|everyone reading this right now gave|you (yes you) would just fork over the bloody|;
 	$content =~ s|To protect our independence, we'll never run ads|To protect our independence, we'll never set up a fascist religious dictatorship that suppresses the freedoms of Dimmy Wales|;
-	$content =~ s|Jimmy Wales|Dimmy Wales|;
+	$content =~ s|Jimmy Wales|Dimmy Wales|g;
+	$content =~ s|Jimmy Donal Wales|Dimmy Donal Wales|g;
 	$content =~ s|passion for sharing the world’s knowledge|serious problem with you|;
 	$content =~ s|//upload.wikimedia.org/wikipedia/en/b/bc/Wiki.png|/o/logo.png|;
 	$content =~ s|"//upload.wikimedia.org/.*Wikiderpia-logo-v2.svg.png"|"/o/logo.png"|;
